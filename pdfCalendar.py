@@ -36,25 +36,26 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
         canvas = Canvas(filename, size)
     elif canvas is None and filename is None:
         raise NoCanvasError
-    monthname = time.strftime("%B", time.strptime(str(month), "%m"))
+
+    monthName = time.strftime("%B", time.strptime(str(month), "%m"))
+    weekHeader = calendar.weekheader(3).split()
     cal = calendar.monthcalendar(year, month)
 
     width, height = size
 
     # draw the month title
-    title = monthname + ' ' + str(year)
-    canvas.drawCentredString(width / 2, height - 27, title)
-    height = height - 40
+    title = monthName + ' ' + str(year)
+    canvas.drawCentredString(width / 2, height - 35, title)
+    height -= 50
 
     # margins
-    wmar, hmar = width/50, height/50
+    wmar, hmar = width/35, height/35
 
     # set up constants
     width, height = width - (2*wmar), height - (2*hmar)
     rows, cols = len(cal), 7
     lastweek = nonzero(cal[-1])
     firstweek = nonzero(cal[0])
-    weeks = len(cal)
     rowheight = floor(height / rows)
     boxwidth = floor(width/7)
 
@@ -70,7 +71,7 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
     # draw the top line of the first row
     startx = wmar + (boxwidth * (7-firstweek))
     endx = startx + (boxwidth * firstweek)
-    y = y + rowheight
+    y += rowheight
     canvas.line(startx, y, endx, y)
 
     # draw the vertical lines
@@ -84,15 +85,22 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
         endy = hmar + (rows * rowheight) - (first * rowheight)
         canvas.line(x, starty, x, endy)
 
-    # fill in the day numbers and any data
+    # weekday header
+    x = wmar + boxwidth/2
+    y = hmar + (rows * rowheight) + 5
+    for day in weekHeader:
+        canvas.drawCentredString(x, y, day)
+        x += boxwidth
+
+    # fill in the day numbers
     x = wmar + 6
     y = hmar + (rows * rowheight) - 15
     for week in cal:
         for day in week:
             if day:
                 canvas.drawString(x, y, str(day))
-            x = x + boxwidth
-        y = y - rowheight
+            x += boxwidth
+        y -= rowheight
         x = wmar + 6
 
     # finish this page
@@ -101,6 +109,6 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
     return canvas
 
 if __name__ == "__main__":
-    c = createCalendar(12, 2016, filename="calendar.pdf")
+    c = createCalendar(NOW.month, NOW.year, filename="calendar.pdf")
     # createCalendar(1, 2017, canvas=c)
     c.save()
