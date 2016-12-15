@@ -1,6 +1,6 @@
 # pdfCalendar
 
-Create monthly calendar PDFs with Python
+Create simple monthly calendar PDFs with Python
 
 ## Usage
 
@@ -12,3 +12,5 @@ Run using:
 python pdfCalendar.py
 ```
 
+## Sample Screenshot
+![calendar](https://raw.githubusercontent.com/wiki/kqueryful/pdfCalendar/images/cal.png)
