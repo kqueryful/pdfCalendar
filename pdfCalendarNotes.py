@@ -10,7 +10,7 @@ import calendar, time, datetime
 from math import floor
 
 NOW = datetime.datetime.now()
-SIZE = pagesizes.landscape(pagesizes.letter)
+SIZE = pagesizes.portrait(pagesizes.letter)
 
 
 class NoCanvasError(Exception):
@@ -23,7 +23,7 @@ def nonzero(row):
 
 def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
     """
-    Create a one-month pdf calendar, and return the canvas
+    Create a one-month pdf calendar, add lines for every day, and return the canvas
 
     month: an integer (1=Jan, 12=Dec)
     year: year in which month falls. Defaults to current year.
@@ -42,15 +42,17 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
     cal = calendar.monthcalendar(year, month)
 
     width, height = size
+    midSpace = height/2
+    height = midSpace
 
     # draw the month title
     canvas.setFont('Helvetica-Bold', 22)
     title = monthName + ' ' + str(year)
-    canvas.drawCentredString(width / 2, height - 35, title)
+    canvas.drawCentredString(width / 2, height - 35 + midSpace, title)
     height -= 50
 
     # margins
-    wmar, hmar = width/35, height/35
+    wmar, hmar = width/35, width/35
 
     # set up constants
     width, height = width - (2*wmar), height - (2*hmar)
@@ -61,13 +63,13 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
     boxwidth = floor(width/7)
 
     # draw the bottom line
-    canvas.line(wmar, hmar, wmar+(boxwidth*lastweek), hmar)
+    canvas.line(wmar, hmar + midSpace, wmar+(boxwidth*lastweek), hmar + midSpace)
     # for all complete rows, draw the bottom line
     for row in range(1, len(cal[1:-1]) + 1):
-        y = hmar + (row * rowheight)
+        y = hmar + (row * rowheight) + midSpace
         canvas.line(wmar, y, wmar + (boxwidth * 7), y)
     # draw the top line of the first full row
-    y = hmar + ((rows-1) * rowheight)
+    y = hmar + ((rows-1) * rowheight) + midSpace
     canvas.line(wmar, y, wmar + (boxwidth * 7), y)
     # draw the top line of the first row
     startx = wmar + (boxwidth * (7-firstweek))
@@ -82,21 +84,21 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
         if col <= lastweek: last = 0
         if col >= 7 - firstweek: first = 0
         x = wmar + (col * boxwidth)
-        starty = hmar + (last * rowheight)
-        endy = hmar + (rows * rowheight) - (first * rowheight)
+        starty = hmar + (last * rowheight) + midSpace
+        endy = hmar + (rows * rowheight) - (first * rowheight) + midSpace
         canvas.line(x, starty, x, endy)
 
     # weekday header
     canvas.setFont('Helvetica', 12)
     x = wmar + boxwidth/2
-    y = hmar + (rows * rowheight) + 5
+    y = hmar + (rows * rowheight) + 5 + midSpace
     for day in weekHeader:
         canvas.drawCentredString(x, y, day)
         x += boxwidth
 
     # fill in the day numbers
     x = wmar + 6
-    y = hmar + (rows * rowheight) - 15
+    y = hmar + (rows * rowheight) - 15 + midSpace
     for week in cal:
         for day in week:
             if day:
@@ -104,6 +106,18 @@ def createCalendar(month, year=NOW.year, canvas=None, filename=None, size=SIZE):
             x += boxwidth
         y -= rowheight
         x = wmar + 6
+
+    # for each day in the month, provide some notes lines
+    row = 12
+    lastDay = max(cal[-1:][0])
+    y = hmar + lastDay*row
+    canvas.setFont('Helvetica',9)
+
+    for day in range(1, lastDay + 1):
+        canvas.drawString(wmar + 6, y+2, "{}".format(day))
+        canvas.line(wmar, y, endx, y)
+        y -= row
+
 
     # finish this page
     canvas.showPage()
